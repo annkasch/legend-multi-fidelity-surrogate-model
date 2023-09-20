@@ -20,7 +20,7 @@
 
 /WLGD/detector/With_NeutronModerators 4 # Design 4 (with lids)
 /WLGD/detector/TurbineAndTube_Length 14.7 cm
-/WLGD/detector/TurbineAndTube_NPanels 145
+/WLGD/detector/TurbineAndTube_NPanels 145.0
 /WLGD/detector/TurbineAndTube_Angle 16.7
 /WLGD/detector/TurbineAndTube_Height 300 cm
 /WLGD/detector/TurbineAndTube_Width 19.0 cm
@@ -47,5 +47,6 @@
 /WLGD/generator/getReadInSeed 1
 /WLGD/generator/setGenerator NeutronsFromFile                    # set the primary generator to the (Alpha,n) generator in the moderators (options: "MeiAndHume", "Musun", "Ge77m", "Ge77andGe77m", "ModeratorNeutrons" = generate neutrons inside the neutron moderators, "ExternalNeutrons" (generate neutrons from outside the water tank)))
 /WLGD/generator/setMUSUNFile ${MUSUN_DIR}/neutron-inputs-design0_25k_${RUN_NUMBER}_v2.dat
+
 # start
 /run/beamOn ${EVENTS}
