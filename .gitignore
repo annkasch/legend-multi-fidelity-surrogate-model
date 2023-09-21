@@ -1,0 +1,6 @@
+surrogate-model/*.png
+surrogate-model/out/**/*.pdf
+surrogate-model/out/**/*.png
+surrogate-model/*.pdf
+analysis/out/**/*.pdf
+analysis/out/**/*.png
