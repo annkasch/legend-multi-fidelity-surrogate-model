@@ -37,8 +37,10 @@ def overwrite_first_line(files_base_name,first_line_new,ending='.csv'):
         writing_mode='a'
         df_in.to_csv(file, mode=writing_mode)
 
-def PrintGeant4Macro(radius,thickness,npanels,theta,length,idx,mode='LF', version='v2'):
-    f = open(f"out/{version}/neutron-sim-D4-{mode}-n{idx}.mac", "w")
+def PrintGeant4Macro(radius, thickness, npanels, theta, length, idx, mode='LF', version='v2'):
+    if not os.path.exists(f'../simulation/out/{mode}/{version}/macros'):
+        os.makedirs(f'../simulation/out/{version}/macros')
+    f = open(f"../simulation/out/{mode}/{version}/macros/neutron-sim-D4-{mode}-{version}-n{idx}_template.mac", "w")
     f.write("# minimal command set test"+ "\n")
     f.write("# verbose"+ "\n")
     f.write("#/random/setSeeds 9530 7367"+"\n"+"\n")
