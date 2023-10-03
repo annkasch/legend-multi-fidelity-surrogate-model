@@ -65,7 +65,7 @@ def MaximizeAcquisitionFunction(mf_model, xlow, xhigh, labels):
 def AddNewSample(x_train_l, y_train_l, x_train_h, y_train_h, mf_model, sample, version='v1'):
     x_new_data=np.array([])
     y_new_data_h=np.array([])
-    data=pd.read_csv(f'../analysis/out/{version}/Ge77_rates_new_samples_{version}.csv', skiprows=1)
+    data=pd.read_csv(f'in/Ge77_rates_new_samples_{version}.csv', skiprows=1)
     row_h=list(set(data.index[data['Sample'] == sample].tolist()).intersection(set(data.index[data['Mode'] == 'HF'].tolist())))
     row_l=list(set(data.index[data['Sample'] == sample].tolist()).intersection(set(data.index[data['Mode'] == 'LF'].tolist())))
 
@@ -92,7 +92,7 @@ def AddNewSamples(x_train_l, y_train_l, x_train_h, y_train_h, mf_model, version=
     return x_train_l, y_train_l, x_train_h, y_train_h, mf_model
 
 def GetNumberOfNewSamples(version='v1'):
-    data=pd.read_csv(f'../analysis/out/{version}/Ge77_rates_new_samples_{version}.csv', skiprows=1)
+    data=pd.read_csv(f'in/Ge77_rates_new_samples_{version}.csv', skiprows=1)
     nsamples_hf=len(data.index[data['Mode'] == 'HF'].tolist())
     nsamples_lf=len(data.index[data['Mode'] == 'LF'].tolist())
     return [nsamples_hf,nsamples_lf]
