@@ -11,8 +11,11 @@
     width: 70px;
     text-align: right;
   }
-  circle {
+  circle.outer-cryostat {
     fill:rgb(182, 182, 182);
+  }
+  circle.inner-cryostat {
+    fill:rgb(128,155,149);
   }
   rect.tilted {
     fill: rgb(0, 125, 115);
@@ -63,16 +66,16 @@ function update(params) {
   const data = [];
   const phi = 360 / params.n.val;
   for (let i = 0; i < params.n.val; i++) {
-    let xpos = params.r.val * Math.cos(phi * i * Math.PI / 180) - params.l.val;
+    let xpos = params.r.val * Math.cos(phi * i * Math.PI / 180) - params.l.val / 2;
     let ypos = params.r.val * Math.sin(phi * i * Math.PI / 180);
-    let rxpos = params.l.val * Math.cos((params.theta.val - 90 + (phi * i)) * Math.PI / 180);
-    let rypos = params.l.val * Math.sin((params.theta.val - 90 + (phi * i)) * Math.PI / 180);
+    let rxpos = params.l.val / 2 * Math.cos((params.theta.val - 90 + (phi * i)) * Math.PI / 180);
+    let rypos = params.l.val / 2 * Math.sin((params.theta.val - 90 + (phi * i)) * Math.PI / 180);
     data.push({
       "x": xpos + 265,
       "y": ypos + 265,
-      "rx": xpos + params.l.val + rxpos + 265,
+      "rx": xpos + (params.l.val / 2) + rxpos + 265,
       "ry": ypos + rypos + 265,
-      "width": 2*params.l.val,
+      "width": params.l.val,
       "height": params.d.val,
       "rotate": 90 + (phi * i)
     });
@@ -84,6 +87,7 @@ function update(params) {
     .data(data)
     .join("rect")
     .classed("original", true)
+    .attr("opacity", params.explanation ? 100 : 0)
     .attr("x", (d) => d.x)
     .attr("y", (d) => d.y)
     .attr("width", (d) => d.width)
@@ -109,7 +113,7 @@ function update(params) {
     .attr("opacity", params.explanation ? 100 : 0);
   g.append("path")
     .attr("id", "r-path")
-    .attr("d", "M265,265 L" + (data[j].x + params.l.val) + "," + data[j].y)
+    .attr("d", "M265,265 L" + (data[j].x + params.l.val / 2) + "," + data[j].y)
     .attr("marker-end", "url(#endarrow)");
   g.append("text")
     .attr("dy", -5)
@@ -121,7 +125,7 @@ function update(params) {
     .attr("transform", "rotate(" + (data[j].rotate + params.theta.val) + " " + (data[j].x + data[j].width/2) + " " + data[j].y + ")");
   lg.append("path")
     .attr("id", "l-path")
-    .attr("d", "M" + (data[j].x + params.l.val) + "," + data[j].y + " L" + (data[j].x + 2*params.l.val) + "," + data[j].y)
+    .attr("d", "M" + data[j].x + "," + data[j].y + " L" + (data[j].x + params.l.val) + "," + data[j].y)
     .attr("marker-start", "url(#startarrow)")
     .attr("marker-end", "url(#endarrow)");
   lg.append("text")
@@ -132,7 +136,7 @@ function update(params) {
     .text(params.l.display);
   lg.append("path")
     .attr("id", "d-path")
-    .attr("d", "M" + (data[j].x + 2*params.l.val) + "," + data[j].y + " L" + (data[j].x + 2*params.l.val) + "," + (data[j].y + params.d.val));
+    .attr("d", "M" + (data[j].x + params.l.val) + "," + data[j].y + " L" + (data[j].x + params.l.val) + "," + (data[j].y + params.d.val));
   lg.append("text")
     .attr("dy", -5)
   .append("textPath")
@@ -140,7 +144,7 @@ function update(params) {
     .text(params.d.display);
   g.append("path")
     .attr("id", "theta-path")
-    .attr("d", "M" + data[j].x + "," + data[j].y + " A " + params.l.val + "," + params.l.val + " " + params.theta.val + " 0 1 " + data[j].rx + "," + data[j].ry)
+    .attr("d", "M" + data[j].x + "," + data[j].y + " A " + (params.l.val / 2) + "," + (params.l.val / 2)+ " " + params.theta.val + " 0 1 " + data[j].rx + "," + data[j].ry)
     .attr("marker-start", "url(#startarrow)")
     .attr("marker-end", "url(#endarrow)");
   g.append("text")
@@ -155,7 +159,7 @@ function update(params) {
 const params = {
   "n": {val: 8, min: 4, max: 360, display: "N"},
   "r": {val: 200, min: 90, max: 265, display: "r"},
-  "l": {val: 85, min: 0, max: 75, display: "L"},
+  "l": {val: 100, min: 1, max: 150, display: "L"},
   "d": {val: 5, min: 1, max: 20, display: "d"},
   "theta": {val: 20, min: 0, max: 45, display: "θ"},
   "legend": true,
@@ -175,9 +179,25 @@ d3.select("#legend").classed("hide", !params.legend);
 // Create the visual.
 d3.select("#viz")
   .append("circle")
+  .classed("outer-cryostat", true)
   .attr("cx", 265)
   .attr("cy", 265)
   .attr("r", 265);
+// d3.select("#viz")
+//   .append("circle")
+//   .classed("inner-cryostat", true)
+//   .attr("stroke-width", 3)
+//   .attr("stroke", "rgb(165,165,165)")
+//   .attr("cx", 265)
+//   .attr("cy", 265)
+//   .attr("r", 90);
+d3.select("#viz")
+  .append("image")
+  .attr("x", 175)
+  .attr("y", 175)
+  .attr("height", 180)
+  .attr("width", 180)
+  .attr("href", "utilities/inner_cryostat.png");
 update(params);
 
 // Populate input sliders.
