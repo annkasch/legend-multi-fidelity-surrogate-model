@@ -8,7 +8,6 @@ colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS)
 import sys
 import os
 sys.path.append('../utilities')
-import drawing_utils
 import simulation_utils
 from matplotlib import cm
 from scipy.optimize import fmin
@@ -100,11 +99,9 @@ def GetNumberOfNewSamples(version='v1'):
 def ActiveLearning(x_train_l, y_train_l, x_train_h, y_train_h, mf_model, xmin, xmax, xlow, xhigh, labels, factor, fig1, fig2, version, x_fixed, sample):
     # add new data point to training data and update model with new training data
     x_new_data=np.array([])
-    y_new_data_l=np.array([])
     y_new_data_h=np.array([])
     if sample > 0:
-        x_train_l, y_train_l, x_train_h, y_train_h, x_new_data, y_new_data_h, mf_model = AddNewSample(x_train_l, y_train_l, x_train_h, y_train_h, mf_model, sample, version)
-        
+        x_train_l, y_train_l, x_train_h, y_train_h, x_new_data, y_new_data_h, mf_model = AddNewSample(x_train_l, y_train_l, x_train_h, y_train_h, mf_model, sample-1, version)   
     # run the model drawing
     DrawMultiFideliyModel(x_train_l, y_train_l, x_train_h, y_train_h, mf_model, xmin, xmax, labels, factor, x_new_data, y_new_data_h, version)#
     fig1 = DrawUpdatedMultiFideliyModel(fig1, x_train_l, y_train_l, x_train_h, y_train_h, mf_model, xmin, xmax, labels, factor, x_new_data, y_new_data_h, version)
