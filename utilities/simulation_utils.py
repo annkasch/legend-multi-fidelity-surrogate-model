@@ -21,7 +21,6 @@ def get_all_files(filename,ending='.root'):
 
 def overwrite_first_line(files_base_name,first_line_new,ending='.csv'):
     files=get_all_files(files_base_name, ending)
-    #file='../simulation/out/HF/v2/Neutron-Simulation-Design1/neutron-sim-design1_0002.csv'
 
     for file in tqdm(files):
         print(file)
@@ -38,9 +37,9 @@ def overwrite_first_line(files_base_name,first_line_new,ending='.csv'):
         df_in.to_csv(file, mode=writing_mode)
 
 def PrintGeant4Macro(radius, thickness, npanels, theta, length, idx, mode='LF', version='v2'):
-    if not os.path.exists(f'../simulation/out/{mode}/{version}/macros'):
-        os.makedirs(f'../simulation/out/{version}/macros')
-    f = open(f"../simulation/out/{mode}/{version}/macros/neutron-sim-D4-{mode}-{version}-n{idx}_template.mac", "w")
+    if not os.path.exists(f'out/{version}/macros'):
+        os.makedirs(f'out/{version}/macros')
+    f = open(f"out/{version}/macros/neutron-sim-D4-{mode}-{version}-n{idx}_template.mac", "w")
     f.write("# minimal command set test"+ "\n")
     f.write("# verbose"+ "\n")
     f.write("#/random/setSeeds 9530 7367"+"\n"+"\n")
