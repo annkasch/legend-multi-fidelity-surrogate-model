@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
+from matplotlib.patches import Rectangle
 
 def GetFormated(x_train_l, index_x,index_y,index_z,y_train_l):
     xtmp=np.array([i for i in np.atleast_2d((x_train_l[:].T[index_x]))])
@@ -125,6 +126,73 @@ def DrawParameterCorrelations(x_train_l,y_train_l,labels):
 
     fig.colorbar(colmap)
 
+def DrawModeratorConfiguration(radius, thickness, npanels, theta, length):
+    figure, axes = plt.subplots( 1 )
+    axes.set_aspect( 1 )
+    axes.set_facecolor([135./265.,151./265.,154./265.])
+    axes.set_xlim(-300,300)
+    axes.set_ylim(-300,300)
+    theta2 = np.linspace( 0 , 2 * np.pi , 150 )
+    r = 265
+    a = r * np.cos( theta2 )
+    b = r * np.sin( theta2 )
+    axes.plot( a, b, color=[182./265., 182./265., 182./265.] )
+    axes.fill_between(a,b,color=[182./265., 182./265., 182./265.])
+    
+    r2 = 90
+    a2 = r2 * np.cos( theta2 )
+    b2 = r2 * np.sin( theta2 )
+    axes.plot( a2, b2, color=[172./265., 165./265., 162./265.])
+    axes.fill_between(a2,b2,color=[128./265., 155./265., 151./265.])
+
+    phi = 360./npanels
+    #axes.grid(color='lightgray', linestyle='-', linewidth=1)
+    for i in range(int(npanels)):
+        
+        ang=180+i*phi+theta
+        x=-thickness/2+radius*np.cos(i* phi * np.pi/180)
+        y=-length/2+ radius*np.sin(i*phi* np.pi/180)
+        axes.add_patch(Rectangle((x,y),thickness,length, rotation_point='center',
+                    angle= ang,
+                    edgecolor='none',
+                    facecolor=[0./265., 125./265., 115./265.],
+                    lw=4))
+    axes.text(-200,-380, f'r= {round(radius,1)}, d={round(thickness,1)}, N={round(npanels,0)}, '+r'$\theta$'+f'={round(theta,1)}, L={round(length,1)}', fontsize=8)
+
+def Rotate(x,y,theta):
+    x_new=x * np.cos(theta) - y * np.sin(theta)
+    y_new=x * np.sin(theta) + y * np.cos(theta)
+    return x_new, y_new
+
+def GetPointsXY(radius,thickness, npanels,theta, length):
+    l = length/2
+    # Convert theta to radians
+    theta = theta * np.pi/180.
+    phi = 360./float(npanels)
+    phi = phi* np.pi/180.
+    x=[]
+    y=[]
+    for i in range(npanels):
+        x.append(0)
+        y.append(0)
+        x.append(radius*np.cos(i*phi))
+        y.append(radius*np.sin(i*phi))
+        x.append(radius*np.cos(i*phi) + Rotate(0.,length/2, np.pi + i*phi + theta)[0])
+        y.append(radius*np.sin(i*phi) + Rotate(0.,length/2, np.pi + i*phi + theta)[1])
+        x.append(radius*np.cos(i*phi) + Rotate(0.,-length/2, np.pi + i*phi + theta)[0])
+        y.append(radius*np.sin(i*phi) + Rotate(0.,-length/2, np.pi + i*phi + theta)[1])
+
+        x.append(radius*np.cos(i*phi) + Rotate(thickness/2,length/2, np.pi + i*phi + theta)[0])
+        y.append(radius*np.sin(i*phi) + Rotate(thickness/2,length/2, np.pi + i*phi + theta)[1])
+        x.append(radius*np.cos(i*phi) + Rotate(thickness/2,-length/2, np.pi + i*phi + theta)[0])
+        y.append(radius*np.sin(i*phi) + Rotate(thickness/2,-length/2, np.pi + i*phi + theta)[1])
+
+        x.append(radius*np.cos(i*phi) + Rotate(-thickness/2,length/2, np.pi + i*phi + theta)[0])
+        y.append(radius*np.sin(i*phi) + Rotate(-thickness/2,length/2, np.pi + i*phi + theta)[1])
+        x.append(radius*np.cos(i*phi) + Rotate(-thickness/2,-length/2, np.pi + i*phi + theta)[0])
+        y.append(radius*np.sin(i*phi) + Rotate(-thickness/2,-length/2, np.pi + i*phi + theta)[1])
+        
+    return x, y
 #fig = plt.figure(figsize=(12, 8))
 #ax = fig.add_subplot(111, projection='3d')
 #colors = cm.hsv(y_train_l/max(y_train_l))
