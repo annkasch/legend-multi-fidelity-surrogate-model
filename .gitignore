@@ -1,0 +1,9 @@
+surrogate-model/out/*
+simulation/out/*
+analysis/out/*
+.DS_Store
+surrogate-model/__pycache__
+surrogate-model/test.ipynb
+utilities/__pycache__/
+.paper
+.paper/*
