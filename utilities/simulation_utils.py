@@ -39,7 +39,7 @@ def overwrite_first_line(files_base_name,first_line_new,ending='.csv'):
 def PrintGeant4Macro(radius, thickness, npanels, theta, length, idx, mode='LF', version='v2'):
     if not os.path.exists(f'out/{version}/macros'):
         os.makedirs(f'out/{version}/macros')
-    f = open(f"out/{version}/macros/neutron-sim-D4-{mode}-{version}-n{idx}_template.mac", "w")
+    f = open(f"out/{version}/macros/neutron-sim-{mode}-{version}-n{idx}_template.mac", "w")
     f.write("# minimal command set test"+ "\n")
     f.write("# verbose"+ "\n")
     f.write("#/random/setSeeds 9530 7367"+"\n"+"\n")
@@ -61,12 +61,12 @@ def PrintGeant4Macro(radius, thickness, npanels, theta, length, idx, mode='LF', 
     f.write("/WLGD/detector/With_Gd_Water 1"+"\n"+"\n")
 
     f.write("/WLGD/detector/With_NeutronModerators 4 # Design 4 (with lids)"+"\n")
-    f.write(f"/WLGD/detector/TurbineAndTube_Length {round(length,1)} cm"+"\n")
+    f.write(f"/WLGD/detector/TurbineAndTube_Radius {round(radius,1)} cm"+"\n")
+    f.write(f"/WLGD/detector/TurbineAndTube_Width {round(thickness,1)} cm"+"\n")
     f.write(f"/WLGD/detector/TurbineAndTube_NPanels {round(npanels,0)}"+"\n")
     f.write(f"/WLGD/detector/TurbineAndTube_Angle {round(theta,1)}"+"\n")
+    f.write(f"/WLGD/detector/TurbineAndTube_Length {round(length,1)} cm"+"\n")
     f.write("/WLGD/detector/TurbineAndTube_Height 300 cm"+"\n")
-    f.write(f"/WLGD/detector/TurbineAndTube_Width {round(thickness,1)} cm"+"\n")
-    f.write(f"/WLGD/detector/TurbineAndTube_Radius {round(radius,1)} cm"+"\n")
     f.write("/WLGD/detector/TurbineAndTube_zPosition 42 cm"+"\n")
     f.write("/WLGD/detector/Which_Material PMMA"+"\n"+"\n")
 
@@ -89,7 +89,7 @@ def PrintGeant4Macro(radius, thickness, npanels, theta, length, idx, mode='LF', 
     if mode=='LF':
         f.write("/WLGD/generator/getReadInSeed 1"+"\n")
         f.write("/WLGD/generator/setGenerator NeutronsFromFile                    # set the primary generator to the (Alpha,n) generator in the moderators (options: \"MeiAndHume\", \"Musun\", \"Ge77m\", \"Ge77andGe77m\", \"ModeratorNeutrons\" = generate neutrons inside the neutron moderators, \"ExternalNeutrons\" (generate neutrons from outside the water tank)))"+"\n")
-        f.write("/WLGD/generator/setMUSUNFile ${MUSUN_DIR}/neutron-inputs-design0_25k_${RUN_NUMBER}_v2.dat"+"\n"+"\n")
+        f.write("/WLGD/generator/setMUSUNFile ${MUSUN_DIR}/neutron-inputs-design0_25k_${RUN_NUMBER}_${VERSION_IN}.dat"+"\n"+"\n")
     elif mode=='HF':
         f.write("/WLGD/generator/setGenerator Musun     # set the primary generator"+"\n")
         f.write("/WLGD/generator/setMUSUNFile ${MUSUN_DIR}/musun_gs_50k_${RUN_NUMBER}.dat"+"\n"+"\n")

@@ -216,3 +216,34 @@ def GetPointsXY(radius,thickness, npanels,theta, length):
 #plt.legend(['Low fidelity', 'High fidelity'])
 #plt.title('High and low fidelity functions');
 #plt.show()
+
+def DrawModerator(radius, thickness, npanels, length, theta,draw_radius=0):
+
+    figure, axes = plt.subplots( 1 )
+    axes.set_aspect( 1 )
+    alpha = np.linspace( 0 , 2 * np.pi , 150 )
+    r = 265
+    a = r * np.cos( alpha )
+    b = r * np.sin( alpha )
+    axes.plot( a, b, color='gray' )
+    
+    r2 = 90
+    a2 = r2 * np.cos( alpha )
+    b2 = r2 * np.sin( alpha )
+    axes.plot( a2, b2, color='gray')
+
+    if draw_radius >0:
+        r2 = draw_radius
+        a2 = r2 * np.cos( alpha )
+        b2 = r2 * np.sin( alpha )
+        axes.plot( a2, b2, color='blue')
+    
+    phi = 2*np.pi/npanels
+    for i in range(npanels):
+        center_x = np.cos(phi*i)*radius
+        center_y = np.sin(phi*i)*radius
+
+        #plt.gca().add_patch(Rectangle((center_x-thickness/2,center_y-length/2),thickness, length, color='gray'))
+        plt.gca().add_patch(Rectangle((center_x-thickness/2,center_y-length),thickness, length*2, angle=-theta, rotation_point='center'))
+
+    return [figure, axes]

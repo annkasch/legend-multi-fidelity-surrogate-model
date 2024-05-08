@@ -61,6 +61,35 @@ class SimulationFile():
         '''
         return len([1 for i in self.is_captured() if i == 1])
     
+    def get_lnE0vsET(self):
+        ekin= self.get("ekin[eV]")
+        lnE0vsET=[]
+        for e in ekin:
+            if e[-1]==0.:
+                e[-1]=0.0000001
+            if e[0]==0.:
+                e[0]=0.0000001
+            lnE0vsET.append(np.log(e[0]/e[-1]))
+        return lnE0vsET
+    
+    def get_r(self):
+        x=self.get("x[m]")
+        y=self.get("y[m]")
+        r = [np.sqrt(x[i]**2+y[i]**2) for i,_ in enumerate(x)]
+        return r
+
+    def get_L(self):
+        x=self.get("x[m]")
+        y=self.get("y[m]")
+        z=self.get("z[m]")
+        return [np.sqrt(x[i]**2+y[i]**2+z[i]**2) for i,_ in enumerate(x)]
+    
+    def get_nsteps(self):
+        x=self.get("x[m]")
+        nsteps = [len(i) for i in x]
+        return nsteps
+    
+    
     def is_in_LAr(self):
         '''
         This function returns a vector flagging the neutrons entering the LAr or being created in LAr
@@ -76,6 +105,7 @@ class SimulationFile():
                 is_in_LAr.append(0)
         return is_in_LAr 
        
+    
     def get(self, key, option=""):
         '''
         This function returns a numpy array of numpy arrays (e_ij) for the given key (e.j. x[m], time[ms]...), i runs over the neutrons, j runs over the key entries (e.j. x1, x2, x3,...)
@@ -88,6 +118,7 @@ class SimulationFile():
             if not self.df.empty:
                 print ("Warning",key, "does not exists in the DataFrame. Returning empty vector",self.keys())
             return [0]
+        
         
         if option=="last" and isinstance(vec[0],Number)==False:
                 vec=[x[len(x)-1] for x in vec]
@@ -102,10 +133,19 @@ class SimulationFile():
         '''
         This function returns a numpy array of numpy arrays (e_ij) for the given key (e.j. x[m], time[ms]...), i runs over only these neutrons which cross the LAr, j runs over the key entries (e.j. x1, x2, x3,...)
         '''
+
         if key in self.df:
             vec=self.df[key].to_numpy()
             if isinstance(vec[0],Number)==False:
                 vec=[np.fromstring(x[1:-1], sep=' ') for x in vec ]
+        elif key == "r[m]":
+            vec=self.get_r()
+        elif key == "L[m]":
+            vec=self.get_L()
+        elif key == "ln(E0vsET)":
+            vec=self.get_lnE0vsET()
+        elif key == "nsteps":
+            vec=self.get_nsteps()
         else:
             if not self.df.empty:
                 print ("Warning",key, "does not exists in the DataFrame. Returning empty vector",self.keys())
@@ -124,7 +164,6 @@ class SimulationFile():
                 vec=[x[0] for i,x in enumerate(vec) if is_in_LAr[i] == 1 ]
             else:
                 vec=[x for i,x in enumerate(vec) if is_in_LAr[i] == 1 ]
-        
         return vec
 
     def neutrons_in_LAr(self):
@@ -158,6 +197,7 @@ class SimulationFile():
 class NeutronSimulation(SimulationFile):
     def __init__(self, filename="neutron-sim-design0"):
         self.files = get_all_files(filename,".csv")
+        print("files: ", self.files)
 
     def keys(self):
         sim_tmp=SimulationFile(self.files[0])
@@ -196,15 +236,15 @@ class NeutronSimulation(SimulationFile):
         vec=[]
         for l in range(nkeys):
             vec.append([])
-            if option=="info":
+            if option=="summary":
                 vec.append([])
-        if option=="info":
+        if option=="summary":
             vec.append([])
         for file in tqdm(self.files):
             sim_tmp=SimulationFile(file)
             vec[0].extend(sim_tmp.is_captured())
             for l in range(nkeys):
-                if option=="info":
+                if option=="summary":
                     vec[l+1].extend(sim_tmp.get(keys[l],"first"))
                     vec[nkeys+l+1].extend(sim_tmp.get(keys[l],"last"))
                 else:
@@ -214,18 +254,19 @@ class NeutronSimulation(SimulationFile):
     def get_is_in_LAr(self, keys, option=""):
         nkeys=len(keys)
         vec=[]
+        
         for l in range(nkeys):
             vec.append([])
-            if option=="info":
+            if option=="summary":
                 vec.append([])
-        if option=="info":
+        if option=="summary":
             vec.append([])
 
         for file in tqdm(self.files):
             sim_tmp=SimulationFile(file)
             vec[0].extend(sim_tmp.is_captured("in_LAr_only"))
             for l in range(nkeys):
-                if option=="info":
+                if option=="summary":
                     vec[l+1].extend(sim_tmp.get_is_in_LAr(keys[l],"first"))
                     vec[nkeys+l+1].extend(sim_tmp.get_is_in_LAr(keys[l],"last"))
                 else:
