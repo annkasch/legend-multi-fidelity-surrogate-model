@@ -6,7 +6,7 @@ Neutron backgrounds have a strong dependence on laboratory depth, shielding mate
 
 However, using traditional Monte Carlo simulations a full optimization of a many parameter space may still be a time consuming and difficult task to address. Machine learning can help in both speeding up common modeling problems, as well as help to minimize the application of computational expensive standard Monte Carlo methods. The Multi-Fidelity Gaussian Process based study presented here aims to demonstrate a technique on a small-scale application, which then is gradually adaptable to the more ambitious task of exploring innovative solutions to the design of detectors for future Ge-76 experiments.
 
-![alt text](https://github.com/annkasch/legend-multi-fidelity-surrogate-model/blob/main/Poster_NPML2023_Boston.001.jpeg)
+![alt text](https://github.com/annkasch/legend-multi-fidelity-surrogate-model/blob/main/MF-GP_concept.jpeg)
 
 ### Visualization
 
