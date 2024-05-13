@@ -36,7 +36,7 @@ def overwrite_first_line(files_base_name,first_line_new,ending='.csv'):
         writing_mode='a'
         df_in.to_csv(file, mode=writing_mode)
 
-def PrintGeant4Macro(radius, thickness, npanels, theta, length, idx, mode='LF', version='v2'):
+def print_geant4_macro(radius, thickness, npanels, theta, length, idx, mode='LF', version='v2'):
     if not os.path.exists(f'out/{version}/macros'):
         os.makedirs(f'out/{version}/macros')
     f = open(f"out/{version}/macros/neutron-sim-{mode}-{version}-n{idx}_template.mac", "w")
