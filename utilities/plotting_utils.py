@@ -5,8 +5,74 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.patches import Rectangle
+from scipy.optimize import minimize
 
-def GetFormated(x_train_l, index_x,index_y,index_z,y_train_l):
+def get_points_xy(x):
+    l = x[4]/2
+    # Convert theta to radians
+    theta = x[3] * np.pi/180.
+    phi = 360./float(x[2])
+    phi = phi* np.pi/180.
+    x=[]
+    y=[]
+    for i in range(x[2]):
+        x.append(0)
+        y.append(0)
+        x.append(x[0]*np.cos(i*phi))
+        y.append(x[0]*np.sin(i*phi))
+        x.append(x[0]*np.cos(i*phi) + rotate(0.,x[4]/2, np.pi + i*phi + theta)[0])
+        y.append(x[0]*np.sin(i*phi) + rotate(0.,x[4]/2, np.pi + i*phi + theta)[1])
+        x.append(x[0]*np.cos(i*phi) + rotate(0.,-x[4]/2, np.pi + i*phi + theta)[0])
+        y.append(x[0]*np.sin(i*phi) + rotate(0.,-x[4]/2, np.pi + i*phi + theta)[1])
+
+        x.append(x[0]*np.cos(i*phi) + rotate(x[1]/2,x[4]/2, np.pi + i*phi + theta)[0])
+        y.append(x[0]*np.sin(i*phi) + rotate(x[1]/2,x[4]/2, np.pi + i*phi + theta)[1])
+        x.append(x[0]*np.cos(i*phi) + rotate(x[1]/2,-x[4]/2, np.pi + i*phi + theta)[0])
+        y.append(x[0]*np.sin(i*phi) + rotate(x[1]/2,-x[4]/2, np.pi + i*phi + theta)[1])
+
+        x.append(x[0]*np.cos(i*phi) + rotate(-x[1]/2,x[4]/2, np.pi + i*phi + theta)[0])
+        y.append(x[0]*np.sin(i*phi) + rotate(-x[1]/2,x[4]/2, np.pi + i*phi + theta)[1])
+        x.append(x[0]*np.cos(i*phi) + rotate(-x[1]/2,-x[4]/2, np.pi + i*phi + theta)[0])
+        y.append(x[0]*np.sin(i*phi) + rotate(-x[1]/2,-x[4]/2, np.pi + i*phi + theta)[1])
+    return x, y
+
+def get_outer_radius(x):
+    theta=x[3] * np.pi/180.
+    l = x[4]/2
+
+    Ax = x[0] + (l*np.cos(np.pi/2 - theta)) + np.cos(theta*np.pi/180.)* x[1]/2.
+    Ay = l*np.sin(np.pi/2 - theta)          + np.sin(theta*np.pi/180.)* x[1]/2.
+    Bx = x[0] - (l*np.cos(np.pi/2 - theta)) + np.cos(theta*np.pi/180.)* x[1]/2.
+    By = -l*np.sin(np.pi/2 - theta)         + np.sin(theta*np.pi/180.)* x[1]/2.
+
+    def outer_radius(x, Ax, Bx, Ay, By):
+        y1=(x-Ax)*(By-Ay)/(Bx-Ax)+Ay
+        return -1.*np.sqrt(x**2+y1**2)
+
+    x_ini = Ax
+    bounds=[[np.min([Ax,Bx]),np.max([Ax,Bx])]]
+    res = minimize(outer_radius, x_ini, args=(Ax,Bx,Ay,By), bounds=bounds)
+    return np.abs(res.fun)
+
+def get_inner_radius(x):
+    theta=x[3] * np.pi/180.
+    l = x[4]/2
+        
+    Bx = x[0] + (l*np.cos(np.pi/2 - theta)) - np.cos(theta*np.pi/180.)* x[1]/2.
+    By = l*np.sin(np.pi/2 - theta)          - np.sin(theta*np.pi/180.)* x[1]/2.
+    Ax = x[0] - (l * np.cos(np.pi/2 - theta)) - np.cos(theta*np.pi/180.)* x[1]/2.
+    Ay = -l*np.sin(np.pi/2 - theta)         - np.sin(theta*np.pi/180.)* x[1]/2.
+
+    def inner_radius(x, Ax, Bx, Ay, By):
+        y1=(x-Ax)*(By-Ay)/(Bx-Ax)+Ay
+        return np.sqrt(x**2+y1**2)
+
+    x_ini = Ax
+    bounds=[[np.min([Ax,Bx]),np.max([Ax,Bx])]]
+    res = minimize(inner_radius, x_ini, args=(Ax,Bx,Ay,By), bounds=bounds)
+    return res.fun
+
+def get_formated(x_train_l, index_x,index_y,index_z,y_train_l):
     xtmp=np.array([i for i in np.atleast_2d((x_train_l[:].T[index_x]))])
     ytmp=[i for i in np.atleast_2d((x_train_l[:].T[index_y]))]
     ztmp=[i for i in np.atleast_2d((x_train_l[:].T[index_z]))]
@@ -96,12 +162,12 @@ def draw_samples_distribution_3D_rotating(x,y,z,c):
 
     fig.show()
 
-def DrawParameterDependencies(ax, x_train_l, y_train_l, x_label='Radius', y_label='Thickness',labels=['Radius','Thickness','Phi', 'Theta', 'Length']):
+def draw_parameter_dependencies(ax, x_train_l, y_train_l, x_label='Radius', y_label='Thickness',labels=['Radius','Thickness','Phi', 'Theta', 'Length']):
     ltmp=np.array(labels)
     x_idx=np.where(ltmp==x_label)[0][0]
     y_idx=np.where(ltmp==y_label)[0][0]
     colors = cm.hsv(y_train_l/max(y_train_l))
-    x,y,z,c = GetFormated(x_train_l,x_idx,y_idx,2,y_train_l)
+    x,y,z,c = get_formated(x_train_l,x_idx,y_idx,2,y_train_l)
     c=1
     ax.grid(True,linestyle='-',color='0.75')
     # scatter with colormap mapping to z value
@@ -110,7 +176,7 @@ def DrawParameterDependencies(ax, x_train_l, y_train_l, x_label='Radius', y_labe
     #fig.colorbar(a)
     #plt.show()
 
-def DrawParameterCorrelations(x_train_l,y_train_l,labels):
+def draw_parameter_corr(x_train_l,y_train_l,labels):
     fig, axs = plt.subplots(len(labels), len(labels),figsize=(9,9), layout="constrained")
 
     colmap = cm.ScalarMappable(cmap=cm.hsv)
@@ -144,12 +210,11 @@ def draw_moderator_config(radius, thickness, npanels, theta, length):
     b2 = r2 * np.sin( theta2 )
     axes.plot( a2, b2, color=[172./265., 165./265., 162./265.])
     axes.fill_between(a2,b2,color=[128./265., 155./265., 151./265.])
-
-    phi = 360./npanels
+    npanels=int(np.round(npanels))
+    phi = 360./float(npanels)
     #axes.grid(color='lightgray', linestyle='-', linewidth=1)
-    for i in range(int(npanels)):
-        
-        ang=180+i*phi+theta
+    for i in range(npanels):
+        ang=180.+i*phi+theta
         x=-thickness/2+radius*np.cos(i* phi * np.pi/180)
         y=-length/2+ radius*np.sin(i*phi* np.pi/180)
         axes.add_patch(Rectangle((x,y),thickness,length, rotation_point='center',
@@ -159,65 +224,40 @@ def draw_moderator_config(radius, thickness, npanels, theta, length):
                     lw=4))
     axes.text(-200,-380, f'r= {round(radius,1)}, d={round(thickness,1)}, N={round(npanels,0)}, '+r'$\theta$'+f'={round(theta,1)}, L={round(length,1)}', fontsize=8)
 
-def Rotate(x,y,theta):
-    x_new=x * np.cos(theta) - y * np.sin(theta)
-    y_new=x * np.sin(theta) + y * np.cos(theta)
-    return x_new, y_new
+def draw_moderator_configuration(x, axes=None):
+    if axes == None:
+        figure, axes = plt.subplots( 1 )
+    axes.set_aspect( 1 )
+    axes.set_facecolor([135./265.,151./265.,154./265.])
+    axes.set_xlim(-300,300)
+    axes.set_ylim(-300,300)
+    theta2 = np.linspace( 0 , 2 * np.pi , 150 )
+    r = 265
+    a = r * np.cos( theta2 )
+    b = r * np.sin( theta2 )
+    axes.plot( a, b, color=[182./265., 182./265., 182./265.] )
+    axes.fill_between(a,b,color=[182./265., 182./265., 182./265.])
+    
+    r2 = 90
+    a2 = r2 * np.cos( theta2 )
+    b2 = r2 * np.sin( theta2 )
+    axes.plot( a2, b2, color=[172./265., 165./265., 162./265.])
+    axes.fill_between(a2,b2,color=[128./265., 155./265., 151./265.])
+    x[2]=int(np.round(x[2]))
+    phi = 360./float(x[2])
+    #axes.grid(color='lightgray', linestyle='-', linewidth=1)
+    for i in range(int(x[2])):
+        ang=180.+i*phi-x[3]
+        x1=-x[1]/2+x[0]*np.cos(i* phi * np.pi/180.)
+        y1=-x[4]/2+x[0]*np.sin(i*phi* np.pi/180.)
+        axes.add_patch(Rectangle((x1,y1),x[1],x[4], rotation_point='center',
+                    angle= ang,
+                    edgecolor='none',
+                    facecolor=[0./265., 125./265., 115./265.],
+                    lw=4))
+    axes.text(-200,-380, f'r= {round(x[0],1)}, d={round(x[1],1)}, N={round(x[2],0)}, '+r'$\theta$'+f'={round(x[3],1)}, L={round(x[4],1)}', fontsize=8)
 
-def GetPointsXY(radius,thickness, npanels,theta, length):
-    l = length/2
-    # Convert theta to radians
-    theta = theta * np.pi/180.
-    phi = 360./float(npanels)
-    phi = phi* np.pi/180.
-    x=[]
-    y=[]
-    for i in range(npanels):
-        x.append(0)
-        y.append(0)
-        x.append(radius*np.cos(i*phi))
-        y.append(radius*np.sin(i*phi))
-        x.append(radius*np.cos(i*phi) + Rotate(0.,length/2, np.pi + i*phi + theta)[0])
-        y.append(radius*np.sin(i*phi) + Rotate(0.,length/2, np.pi + i*phi + theta)[1])
-        x.append(radius*np.cos(i*phi) + Rotate(0.,-length/2, np.pi + i*phi + theta)[0])
-        y.append(radius*np.sin(i*phi) + Rotate(0.,-length/2, np.pi + i*phi + theta)[1])
-
-        x.append(radius*np.cos(i*phi) + Rotate(thickness/2,length/2, np.pi + i*phi + theta)[0])
-        y.append(radius*np.sin(i*phi) + Rotate(thickness/2,length/2, np.pi + i*phi + theta)[1])
-        x.append(radius*np.cos(i*phi) + Rotate(thickness/2,-length/2, np.pi + i*phi + theta)[0])
-        y.append(radius*np.sin(i*phi) + Rotate(thickness/2,-length/2, np.pi + i*phi + theta)[1])
-
-        x.append(radius*np.cos(i*phi) + Rotate(-thickness/2,length/2, np.pi + i*phi + theta)[0])
-        y.append(radius*np.sin(i*phi) + Rotate(-thickness/2,length/2, np.pi + i*phi + theta)[1])
-        x.append(radius*np.cos(i*phi) + Rotate(-thickness/2,-length/2, np.pi + i*phi + theta)[0])
-        y.append(radius*np.sin(i*phi) + Rotate(-thickness/2,-length/2, np.pi + i*phi + theta)[1])
-        
-    return x, y
-#fig = plt.figure(figsize=(12, 8))
-#ax = fig.add_subplot(111, projection='3d')
-#colors = cm.hsv(y_train_l/max(y_train_l))
-#colmap = cm.ScalarMappable(cmap=cm.hsv)
-#colmap.set_array(y_train_l)
-#x_l=np.atleast_2d((x_train_l[:].T[0])).T
-#y_l=np.atleast_2d((x_train_l[:].T[1])).T
-#z_l=np.atleast_2d((x_train_l[:].T[2])).T
-#x_h=np.atleast_2d((x_train_h[:].T[0])).T
-#y_h=np.atleast_2d((x_train_h[:].T[1])).T
-#z_h=np.atleast_2d((x_train_h[:].T[2])).T
-#ax.scatter(x_l, y_l, z_l, c=colors, marker='o')
-#ax.scatter(x_h, y_h, z_h,color='black',marker='x')
-#print(np.atleast_2d((x_train_h[:].T[2])))
-#cb = fig.colorbar(colmap)
-#ax.set_xlabel('radius')
-#ax.set_ylabel('thickness')
-#ax.set_zlabel('N panels')
-#plt.clabel('f (x)')
-#plt.xlim([0, 260])
-#plt.legend(['Low fidelity', 'High fidelity'])
-#plt.title('High and low fidelity functions');
-#plt.show()
-
-def DrawModerator(radius, thickness, npanels, length, theta,draw_radius=0):
+def draw_moderator(x,draw_radius=0):
 
     figure, axes = plt.subplots( 1 )
     axes.set_aspect( 1 )
@@ -238,12 +278,88 @@ def DrawModerator(radius, thickness, npanels, length, theta,draw_radius=0):
         b2 = r2 * np.sin( alpha )
         axes.plot( a2, b2, color='blue')
     
-    phi = 2*np.pi/npanels
-    for i in range(npanels):
-        center_x = np.cos(phi*i)*radius
-        center_y = np.sin(phi*i)*radius
+    phi = 2*np.pi/x[2]
+    for i in range(x[2]):
+        center_x = np.cos(phi*i)*x[0]
+        center_y = np.sin(phi*i)*x[0]
 
         #plt.gca().add_patch(Rectangle((center_x-thickness/2,center_y-length/2),thickness, length, color='gray'))
-        plt.gca().add_patch(Rectangle((center_x-thickness/2,center_y-length),thickness, length*2, angle=-theta, rotation_point='center'))
+        plt.gca().add_patch(Rectangle((center_x-x[1]/2,center_y-x[4]),x[1], x[4]*2, angle=-x[3], rotation_point='center'))
 
+    return [figure, axes]
+
+def rotate(x,y,theta):
+    x_new=x * np.cos(theta) - y * np.sin(theta)
+    y_new=x * np.sin(theta) + y * np.cos(theta)
+    return x_new, y_new
+
+'''
+The solution involves determining if three points are listed in a counterclockwise order. So say you have three points A, B and C. If the slope of the line AB is less than the slope of the line AC then the three points are listed in a counterclockwise order.
+
+This is equivalent to:
+'''
+def ccw(A,B,C):
+    return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
+'''
+How does this help? Think of two line segments AB, and CD. These intersect if and only if points A and B are separated by segment CD and points C and D are separated by segment AB. If points A and B are separated by segment CD then ACD and BCD should have opposite orientation meaning either ACD or BCD is counterclockwise but not both. Therefore calculating if two line segments AB and CD intersect is as follows:
+'''
+def intersect(A,B,C,D):
+    # Return true if line segments AB and CD intersect
+    return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
+
+def get_points(x):
+    l = x[4]/2
+    # Convert theta to radians
+    theta = x[3] * np.pi/180.
+    phi = 360./np.round(x[2]) * np.pi/180.
+    
+    A0x = x[0] + (l*np.cos(np.pi/2 - theta)) + np.cos(theta*np.pi/180.)* x[1]/2.
+    A0y = l*np.sin(np.pi/2 - theta)          + np.sin(theta*np.pi/180.)* x[1]/2.
+    B0x = x[0] - (l*np.cos(np.pi/2 - theta)) + np.cos(theta*np.pi/180.)* x[1]/2.
+    B0y = -l*np.sin(np.pi/2 - theta)         + np.sin(theta*np.pi/180.)* x[1]/2.
+    C0x = x[0] + (l*np.cos(np.pi/2 - theta)) - np.cos(theta*np.pi/180.)* x[1]/2.
+    C0y = l*np.sin(np.pi/2 - theta)          - np.sin(theta*np.pi/180.)* x[1]/2.
+    D0x = x[0] - (l*np.cos(np.pi/2 - theta)) - np.cos(theta*np.pi/180.)* x[1]/2.
+    D0y = -l*np.sin(np.pi/2 - theta)         - np.sin(theta*np.pi/180.)* x[1]/2.
+
+    A1x = x[0]*np.cos(phi) - (l*np.cos(np.pi/2 - phi + theta)) - np.cos(theta*np.pi/180.)* x[1]/2.
+    A1y = x[0]*np.sin(phi) + (l*np.sin(np.pi/2 - phi + theta)) - np.sin(theta*np.pi/180.)* x[1]/2.
+    B1x = x[0]*np.cos(phi) + (l*np.cos(np.pi/2 - phi + theta)) - np.cos(theta*np.pi/180.)* x[1]/2.
+    B1y = x[0]*np.sin(phi) - (l*np.sin(np.pi/2 - phi + theta)) - np.sin(theta*np.pi/180.)* x[1]/2.
+    C1x = x[0]*np.cos(phi) - (l*np.cos(np.pi/2 - phi + theta)) + np.cos(theta*np.pi/180.)* x[1]/2.
+    C1y = x[0]*np.sin(phi) + (l*np.sin(np.pi/2 - phi + theta)) + np.sin(theta*np.pi/180.)* x[1]/2.
+    D1x = x[0]*np.cos(phi) + (l*np.cos(np.pi/2 - phi + theta)) + np.cos(theta*np.pi/180.)* x[1]/2.
+    D1y = x[0]*np.sin(phi) - (l*np.sin(np.pi/2 - phi + theta)) + np.sin(theta*np.pi/180.)* x[1]/2.
+    
+    return [[A0x,A0y],[B0x,B0y],[C0x,C0y],[D0x,D0y],[A1x,A1y],[B1x,B1y],[C1x,C1y],[D1x,D1y]]
+
+def is_crossed(points):
+    return intersect(points[0],points[1],points[2],points[3])
+
+def draw_panel_border(x,radius=0):
+    points=get_points(x)
+    figure, axes = plt.subplots( 1 )
+    axes.set_aspect( 1 )
+    theta = np.linspace( 0 , 2 * np.pi , 150 )
+    r = 265
+    a = r * np.cos( theta )
+    b = r * np.sin( theta )
+    axes.plot( a, b, color='gray' )
+    
+    r2 = 90
+    a2 = r2 * np.cos( theta )
+    b2 = r2 * np.sin( theta )
+    axes.plot( a2, b2, color='gray')
+
+    if radius >0:
+        r2 = radius
+        a2 = r2 * np.cos( theta )
+        b2 = r2 * np.sin( theta )
+        axes.plot( a2, b2, color='blue')
+    xs = [x[0] for x in points]
+    ys = [x[1] for x in points]
+
+    for i in range(0,8,2):
+        axes.plot(xs[i:i+2], ys[i:i+2])
+   
     return [figure, axes]

@@ -199,6 +199,8 @@ def draw_model_updated(fig, x_train_l,y_train_l,x_train_h,y_train_h,mf_model,xmi
         ax[i].legend([f'{factor} $\sigma$ Prediction Low Fidelity',f'{factor} $\sigma$ Prediction High Fidelity', 'Predicted Low Fidelity', 'Predicted High Fidelity', 'Low Fidelity Training Data', 'High Fidelity Training Data'])
         #ax[i].set_title('linear multi-fidelity model fit to low and high fidelity functions');
 
+    for i in range(len(labels),len(ax)): 
+        ax[i].set_axis_off()
     pdf.savefig(fig)
     pdf.close()
 

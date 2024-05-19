@@ -11,41 +11,12 @@ import gc
 from IPython.display import display, Image
 import re
 import sys
+sys.path.append('../utilities')
+import utilities as utils
 
 
 
-def get_all_files(path_to_files, ending='.csv'):
-    """This function finds all file in a directory with a given ending
 
-    Args:
-        path_to_files: files path
-        ending: define ending of the files
-
-    Returns:
-        res: a list with all filenames
-    """
-
-    dir_path = './'
-
-    filename = ""
-    index=[i+1 for i in range(len(path_to_files)) if  path_to_files[i]=='/']
-
-    if len(index)>0:
-        dir_path=path_to_files[:index[-1]]
-        filename=path_to_files[index[-1]:]
-
-    res = []
-
-    filelist=os.listdir(dir_path)
-    filelist.sort()
-    #filelist = sorted(filelist, key=int)
-    for file in filelist:
-
-        if file.startswith(filename) and file.endswith(ending):
-            res.append(f'{dir_path}{file}')
-    if len(res) == 0:
-        print(f"Warning: No files found at {path_to_files}.")
-    return res
 
 def readin_data(filelist, usecols=[]):
     """This function reads in all data from a filelist and gives back a dataframe
@@ -123,7 +94,7 @@ def generate_data(path_to_files, ratio_testing, fout, no_shuffle=False):
     #print(sys.getrecursionlimit())
     sys.setrecursionlimit(10000)
     
-    filelist = get_all_files(path_to_files)
+    filelist = utils.get_all_files(path_to_files)
     df = readin_data(filelist=filelist)
 
     x_tmp = df.to_dask_array().compute()
@@ -338,7 +309,7 @@ class DataGeneration(object):
                     self._filename = filename_tmp
 
             self.generate_partitions(self._filename)
-            self._filelist = get_all_files(f'{self._filename}/',ending=".parquet")
+            self._filelist = utils.get_all_files(f'{self._filename}/',ending=".parquet")
             
             #self._num_total_points = 0
             #for file in self._filelist:
@@ -348,7 +319,7 @@ class DataGeneration(object):
             # get number of total points in file
         else:
             self._partition_size = 1
-            self._filelist = get_all_files(path_to_files,ending=".csv")
+            self._filelist = utils.get_all_files(path_to_files,ending=".csv")
 
         
     def generate_partitions(self, path_to_files):
@@ -357,7 +328,7 @@ class DataGeneration(object):
         self._filename = f"{path_to_files}_{self._num_target_points+self._num_context_points}_tmp"
 
         if os.path.exists(self._filename) == True:
-            nfiles = len(get_all_files(f'{self._filename}/',".parquet"))
+            nfiles = len(utils.get_all_files(f'{self._filename}/',".parquet"))
             with open(f"{self._filename}/part.{(nfiles-1):04d}.parquet", "rbU") as f:
                 npoints_last = int(sum(1 for _ in f))-1
 
@@ -486,7 +457,7 @@ class DataGeneration(object):
         return CNPRegressionDescription(query=query, target_y=batch_target_y)
     
     def build_tier3(self, path_to_tier2, use_beta = None):
-        filelist = get_all_files(path_to_tier2+"neutron")
+        filelist = utils.get_all_files(path_to_tier2+"neutron")
         for file in tqdm(filelist):
 
             if self.use_data_augmentation == "smote":

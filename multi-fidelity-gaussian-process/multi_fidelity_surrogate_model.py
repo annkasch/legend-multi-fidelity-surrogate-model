@@ -1,17 +1,9 @@
 import numpy as np
-np.random.seed(20)
+np.random.seed(123)
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import colors as mcolors
 colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS)
-import sys
-import os
-sys.path.append('../utilities')
-import simulation_utils
-import plotting_utils
-from matplotlib import cm
-from scipy.optimize import fmin
+from scipy.optimize import minimize
 
 import GPy
 import emukit.multi_fidelity
@@ -20,13 +12,10 @@ from emukit.model_wrappers.gpy_model_wrappers import GPyMultiOutputWrapper
 from emukit.multi_fidelity.models import GPyLinearMultiFidelityModel
 from emukit.multi_fidelity.convert_lists_to_array import convert_x_list_to_array, convert_xy_lists_to_arrays
 from emukit.core.optimization import GradientAcquisitionOptimizer
-from emukit.multi_fidelity.models.non_linear_multi_fidelity_model import make_non_linear_kernels, NonLinearMultiFidelityModel
 from emukit.experimental_design.acquisitions import ModelVariance,IntegratedVarianceReduction
 from emukit.core import ParameterSpace, ContinuousParameter, DiscreteParameter, InformationSourceParameter
 from emukit.core.acquisition import Acquisition
 from emukit.bayesian_optimization.acquisitions.entropy_search import MultiInformationSourceEntropySearch
-
-
 
 # Construct a linear multi-fidelity model
 
@@ -82,7 +71,7 @@ def max_acquisition_func(mf_model, xlow, xhigh, labels):
     spaces_tmp.append(InformationSourceParameter(2))
     parameter_space = ParameterSpace(spaces_tmp)
     cost_acquisition = Cost([1., 2000.])
-    us_acquisition = MultiInformationSourceEntropySearch(mf_model, parameter_space) / cost_acquisition
+    us_acquisition = MultiInformationSourceEntropySearch(mf_model, parameter_space)# / cost_acquisition
     
     ## Compute mean and variance predictions
     #spaces_tmp.append(DiscreteParameter("f",[1]))
@@ -160,10 +149,20 @@ def hf_model_uncertainty(x, mf_model):
 
 # Get the minimum of the HF model prediction
 
-def get_min(mf_model, x_0=[100, 5, 360, 0, 2]):
-    def prediction(x):
-        return hf_model(x,mf_model=mf_model)
-    xmin=fmin(prediction, x_0)
-    model_min=prediction(xmin)
-    model_uncer_min=hf_model_uncertainty(np.array(xmin),mf_model)
-    return [xmin, model_min, model_uncer_min]
+def get_min(mf_model, xmin, xmax):
+
+    def f(x):
+        x_eval=np.array([x])
+        SPLIT = 1
+        X_eval = convert_x_list_to_array([x_eval , x_eval])
+        return mf_model.predict(X_eval[SPLIT:])[0][0][0]
+
+    x0=np.array([150.,10.,360.,0.,4.])
+    bnds=[]
+    for i in range(len(xmin)):
+        bnds.append((xmin[i],xmax[i]))
+    
+    res = minimize(f, x0,bounds=bnds)
+    return res.x, res.fun
+
+    

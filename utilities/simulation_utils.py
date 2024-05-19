@@ -2,25 +2,12 @@ import numpy as np
 import pandas as pd
 import os
 from tqdm import tqdm
-
-def get_all_files(filename,ending='.root'):
-    dir_path = './'
-
-    index=[i+1 for i in range(len(filename)) if  filename[i]=='/']
-    if len(index)>0:
-        dir_path=filename[:index[-1]]
-        filename=filename[index[-1]:]
-
-    res = []
-    filelist=os.listdir(dir_path)
-    filelist.sort()
-    for file in filelist:
-        if file.startswith(filename) and file.endswith(ending):
-            res.append(f'{dir_path}{file}')
-    return res
+import sys
+sys.path.append('../utilities')
+import utilities as utils
 
 def overwrite_first_line(files_base_name,first_line_new,ending='.csv'):
-    files=get_all_files(files_base_name, ending)
+    files=utils.get_all_files(files_base_name, ending)
 
     for file in tqdm(files):
         print(file)
@@ -36,10 +23,10 @@ def overwrite_first_line(files_base_name,first_line_new,ending='.csv'):
         writing_mode='a'
         df_in.to_csv(file, mode=writing_mode)
 
-def print_geant4_macro(radius, thickness, npanels, theta, length, idx, mode='LF', version='v2'):
-    if not os.path.exists(f'out/{version}/macros'):
-        os.makedirs(f'out/{version}/macros')
-    f = open(f"out/{version}/macros/neutron-sim-{mode}-{version}-n{idx}_template.mac", "w")
+def print_geant4_macro_new_sample(x, idx, mode='LF', version='v2'):
+    if not os.path.exists(f'out/{version}/macros/{mode}'):
+        os.makedirs(f'out/{version}/macros/{mode}')
+    f = open(f"out/{version}/macros/{mode}/neutron-sim-{mode}-{version}-{idx}_template.mac", "w")
     f.write("# minimal command set test"+ "\n")
     f.write("# verbose"+ "\n")
     f.write("#/random/setSeeds 9530 7367"+"\n"+"\n")
@@ -61,11 +48,11 @@ def print_geant4_macro(radius, thickness, npanels, theta, length, idx, mode='LF'
     f.write("/WLGD/detector/With_Gd_Water 1"+"\n"+"\n")
 
     f.write("/WLGD/detector/With_NeutronModerators 4 # Design 4 (with lids)"+"\n")
-    f.write(f"/WLGD/detector/TurbineAndTube_Radius {round(radius,1)} cm"+"\n")
-    f.write(f"/WLGD/detector/TurbineAndTube_Width {round(thickness,1)} cm"+"\n")
-    f.write(f"/WLGD/detector/TurbineAndTube_NPanels {round(npanels,0)}"+"\n")
-    f.write(f"/WLGD/detector/TurbineAndTube_Angle {round(theta,1)}"+"\n")
-    f.write(f"/WLGD/detector/TurbineAndTube_Length {round(length,1)} cm"+"\n")
+    f.write(f"/WLGD/detector/TurbineAndTube_Radius {round(x[0],1)} cm"+"\n")
+    f.write(f"/WLGD/detector/TurbineAndTube_Width {round(x[1],1)} cm"+"\n")
+    f.write(f"/WLGD/detector/TurbineAndTube_NPanels {round(x[2],0)}"+"\n")
+    f.write(f"/WLGD/detector/TurbineAndTube_Angle {round(x[3],1)}"+"\n")
+    f.write(f"/WLGD/detector/TurbineAndTube_Length {round(x[4],1)} cm"+"\n")
     f.write("/WLGD/detector/TurbineAndTube_Height 300 cm"+"\n")
     f.write("/WLGD/detector/TurbineAndTube_zPosition 42 cm"+"\n")
     f.write("/WLGD/detector/Which_Material PMMA"+"\n"+"\n")
@@ -87,8 +74,8 @@ def print_geant4_macro(radius, thickness, npanels, theta, length, idx, mode='LF'
     f.write("/WLGD/step/getDepositionInfo 1"+"\n")
     f.write("/WLGD/step/getIndividualDepositionInfo 1"+"\n")
     if mode=='LF':
-        f.write("/WLGD/generator/getReadInSeed 1"+"\n")
-        f.write("/WLGD/generator/setGenerator NeutronsFromFile                    # set the primary generator to the (Alpha,n) generator in the moderators (options: \"MeiAndHume\", \"Musun\", \"Ge77m\", \"Ge77andGe77m\", \"ModeratorNeutrons\" = generate neutrons inside the neutron moderators, \"ExternalNeutrons\" (generate neutrons from outside the water tank)))"+"\n")
+        f.write("/WLGD/generator/getReadInSeed 0"+"\n")
+        f.write("#/WLGD/generator/setGenerator NeutronsFromFile                    # set the primary generator to the (Alpha,n) generator in the moderators (options: \"MeiAndHume\", \"Musun\", \"Ge77m\", \"Ge77andGe77m\", \"ModeratorNeutrons\" = generate neutrons inside the neutron moderators, \"ExternalNeutrons\" (generate neutrons from outside the water tank)))"+"\n")
         f.write("/WLGD/generator/setMUSUNFile ${MUSUN_DIR}/neutron-inputs-design0_25k_${RUN_NUMBER}_${VERSION_IN}.dat"+"\n"+"\n")
     elif mode=='HF':
         f.write("/WLGD/generator/setGenerator Musun     # set the primary generator"+"\n")
@@ -96,4 +83,3 @@ def print_geant4_macro(radius, thickness, npanels, theta, length, idx, mode='LF'
     f.write("# start"+"\n")
     f.write("/run/beamOn ${EVENTS}"+"\n")
     f.close()
-

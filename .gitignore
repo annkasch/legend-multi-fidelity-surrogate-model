@@ -1,9 +1,8 @@
 .DS_Store
-
 conditional-neural-process/utils.ipynb
 conditional-neural-process/out/*
 conditional-neural-process/fully_connected_neutral_network.ipynb
-conditional-neural-process/conditional_neutral_process.ipynb
+conditional-neural-process/arxiv/*
 multi-fidelity-gaussian-process/__pycache__
 multi-fidelity-gaussian-process/out/*
 multi-fidelity-gaussian-process/in/Ge77_rates_CNP_v1.2.csv
@@ -13,8 +12,14 @@ multi-fidelity-gaussian-process/in/Ge77_rates_new_samples_v1.3.csv
 sampling/out/*
 sampling/comparing-sampling-methods.ipynb
 sampling/samples2macro.ipynb
+simulation/generate_neutron_input_parameters.ipynb
 simulation/out/HF*
 simulation/out/LF*
 simulation-analysis
 simulation-analysis/*
 utilities/__pycache__/
+conditional-neural-process/__pycache__
+conditional-neural-process/__pycache__/*
+*/__pycache__/*
+sampling/generate-LF-simulation-samples_constrained_test.ipynb
+.gitignore
