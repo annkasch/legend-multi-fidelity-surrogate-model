@@ -153,36 +153,6 @@ def get_subplot_result_configwise(ax, prediction_y, target_y, loss, param=""):
     ax.set_xlabel("nC probability")
 
 
-def get_subplot_moderator(ax, x,radius_2=0):
-    '''
-    from matplotlib.patches import Rectangle
-    ax.set_aspect( 1 )
-    phi = 2*np.pi/npanels
-
-    for i in range(int(npanels)):
-        center_x = np.cos(phi*i)*radius
-        center_y = np.sin(phi*i)*radius
-        plt.gca().add_patch(Rectangle((center_x-thickness/2,center_y-length/2),thickness, length, angle=i*(360./npanels)+theta, color="teal", rotation_point='center'))
-
-    alpha = np.linspace( 0 , 2 * np.pi , 150 )
-    r = 265
-    a = r * np.cos( alpha )
-    b = r * np.sin( alpha )
-    ax.plot( a, b, color='gray' )
-    
-    r2 = 90
-    a2 = r2 * np.cos( alpha )
-    b2 = r2 * np.sin( alpha )
-    ax.plot( a2, b2, color='gray')
-
-    if radius_2 >0:
-        r2 = radius_2
-        a2 = r2 * np.cos( alpha )
-        b2 = r2 * np.sin( alpha )
-        ax.plot( a2, b2, color='orangered')
-    '''
-    
-    plotting.draw_moderator_configuration(x)
 
 def plot_result_configwise(prediction_y, target_y, loss, x):
     sum_sim=np.sum(target_y)
@@ -191,8 +161,8 @@ def plot_result_configwise(prediction_y, target_y, loss, x):
     fig, ax = plt.subplots(1, 2, figsize=(9, 3))
     fig.suptitle(f'Testing (loss {loss}) {Counter([i[0] for i in target_y])} mean(CNP): {mean_pred:.3f}, sum(Sim): {sum_sim:.0f}', fontsize=12)
     get_subplot_result_configwise(ax[0],prediction_y, target_y, loss)
-    
-    get_subplot_moderator(ax[1],x)
-    ax[1].legend([f"r={x[1]}, d={x[2]}, n={x[3]}, theta={x[4]}, L={x[5]}"],loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=2)
+
+    plotting.get_subplot_moderator(ax[1],x)
+    ax[1].legend([f"r={x[0]}, d={x[1]}, n={x[2]}, theta={x[3]}, L={x[4]}"],loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=2)
         
     return fig

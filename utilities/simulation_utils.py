@@ -23,10 +23,12 @@ def overwrite_first_line(files_base_name,first_line_new,ending='.csv'):
         writing_mode='a'
         df_in.to_csv(file, mode=writing_mode)
 
-def print_geant4_macro_new_sample(x, idx, mode='LF', version='v2'):
-    if not os.path.exists(f'out/{version}/macros/{mode}'):
-        os.makedirs(f'out/{version}/macros/{mode}')
-    f = open(f"out/{version}/macros/{mode}/neutron-sim-{mode}-{version}-{idx}_template.mac", "w")
+def print_geant4_macro(x, idx, mode='LF', version='v2'):
+
+    path_to_macros=f"out/{mode}/{version}/macros/"
+    if (os.path.exists(path_to_macros)==False):
+        os.makedirs(path_to_macros)
+    f = open(f"{path_to_macros}/neutron-sim-{mode}-{version}-{idx}.mac", "w")
     f.write("# minimal command set test"+ "\n")
     f.write("# verbose"+ "\n")
     f.write("#/random/setSeeds 9530 7367"+"\n"+"\n")
@@ -75,7 +77,7 @@ def print_geant4_macro_new_sample(x, idx, mode='LF', version='v2'):
     f.write("/WLGD/step/getIndividualDepositionInfo 1"+"\n")
     if mode=='LF':
         f.write("/WLGD/generator/getReadInSeed 0"+"\n")
-        f.write("#/WLGD/generator/setGenerator NeutronsFromFile                    # set the primary generator to the (Alpha,n) generator in the moderators (options: \"MeiAndHume\", \"Musun\", \"Ge77m\", \"Ge77andGe77m\", \"ModeratorNeutrons\" = generate neutrons inside the neutron moderators, \"ExternalNeutrons\" (generate neutrons from outside the water tank)))"+"\n")
+        f.write("/WLGD/generator/setGenerator NeutronsFromFile                    # set the primary generator to the (Alpha,n) generator in the moderators (options: \"MeiAndHume\", \"Musun\", \"Ge77m\", \"Ge77andGe77m\", \"ModeratorNeutrons\" = generate neutrons inside the neutron moderators, \"ExternalNeutrons\" (generate neutrons from outside the water tank)))"+"\n")
         f.write("/WLGD/generator/setMUSUNFile ${MUSUN_DIR}/neutron-inputs-design0_25k_${RUN_NUMBER}_${VERSION_IN}.dat"+"\n"+"\n")
     elif mode=='HF':
         f.write("/WLGD/generator/setGenerator Musun     # set the primary generator"+"\n")

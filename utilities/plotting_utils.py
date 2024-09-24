@@ -47,6 +47,8 @@ def get_outer_radius(x):
 
     def outer_radius(x, Ax, Bx, Ay, By):
         y1=(x-Ax)*(By-Ay)/(Bx-Ax)+Ay
+        if (Bx == Ax):
+            y1 = 0.
         return -1.*np.sqrt(x**2+y1**2)
 
     x_ini = Ax
@@ -57,7 +59,7 @@ def get_outer_radius(x):
 def get_inner_radius(x):
     theta=x[3] * np.pi/180.
     l = x[4]/2
-        
+
     Bx = x[0] + (l*np.cos(np.pi/2 - theta)) - np.cos(theta*np.pi/180.)* x[1]/2.
     By = l*np.sin(np.pi/2 - theta)          - np.sin(theta*np.pi/180.)* x[1]/2.
     Ax = x[0] - (l * np.cos(np.pi/2 - theta)) - np.cos(theta*np.pi/180.)* x[1]/2.
@@ -65,11 +67,16 @@ def get_inner_radius(x):
 
     def inner_radius(x, Ax, Bx, Ay, By):
         y1=(x-Ax)*(By-Ay)/(Bx-Ax)+Ay
+        if Bx==Ax:
+            y1=0.
+        #print("x", (Ax,Ay), (Bx, By), x, (x-Ax),(By-Ay),(Bx-Ax))
+        #print("y1",y1,np.sqrt(x**2+y1**2))
         return np.sqrt(x**2+y1**2)
 
     x_ini = Ax
     bounds=[[np.min([Ax,Bx]),np.max([Ax,Bx])]]
     res = minimize(inner_radius, x_ini, args=(Ax,Bx,Ay,By), bounds=bounds)
+    #print("result",res)
     return res.fun
 
 def get_formated(x_train_l, index_x,index_y,index_z,y_train_l):
@@ -293,19 +300,6 @@ def rotate(x,y,theta):
     y_new=x * np.sin(theta) + y * np.cos(theta)
     return x_new, y_new
 
-'''
-The solution involves determining if three points are listed in a counterclockwise order. So say you have three points A, B and C. If the slope of the line AB is less than the slope of the line AC then the three points are listed in a counterclockwise order.
-
-This is equivalent to:
-'''
-def ccw(A,B,C):
-    return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
-'''
-How does this help? Think of two line segments AB, and CD. These intersect if and only if points A and B are separated by segment CD and points C and D are separated by segment AB. If points A and B are separated by segment CD then ACD and BCD should have opposite orientation meaning either ACD or BCD is counterclockwise but not both. Therefore calculating if two line segments AB and CD intersect is as follows:
-'''
-def intersect(A,B,C,D):
-    # Return true if line segments AB and CD intersect
-    return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
 
 def get_points(x):
     l = x[4]/2
@@ -333,8 +327,16 @@ def get_points(x):
     
     return [[A0x,A0y],[B0x,B0y],[C0x,C0y],[D0x,D0y],[A1x,A1y],[B1x,B1y],[C1x,C1y],[D1x,D1y]]
 
-def is_crossed(points):
-    return intersect(points[0],points[1],points[2],points[3])
+def ccw(A,B,C):
+    return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
+
+def intersect(A,B,C,D):
+    # Return true if line segments AB and CD intersect
+    return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
+
+def is_crossed(x):
+    _,_,A,B,_,_,C,D = get_points(x)
+    return intersect(A,B,C,D)
 
 def draw_panel_border(x,radius=0):
     points=get_points(x)
@@ -363,3 +365,23 @@ def draw_panel_border(x,radius=0):
         axes.plot(xs[i:i+2], ys[i:i+2])
    
     return [figure, axes]
+
+def get_subplot_moderator(ax, x):
+
+    ax.set_aspect( 1 )
+    phi = 2.*np.pi/np.round(x[2])
+    for i in range(int(x[2])):
+        center_x = np.cos(phi*i)*x[0]
+        center_y = np.sin(phi*i)*x[0]
+        plt.gca().add_patch(Rectangle((center_x-x[1]/2,center_y-x[4]/2),x[1], x[4], angle=i*(360./x[2])-x[3], color="teal", rotation_point='center'))
+
+    alpha = np.linspace( 0 , 2 * np.pi , 150 )
+    r = 265
+    a = r * np.cos( alpha )
+    b = r * np.sin( alpha )
+    ax.plot( a, b, color='gray' )
+    
+    r2 = 90
+    a2 = r2 * np.cos( alpha )
+    b2 = r2 * np.sin( alpha )
+    ax.plot( a2, b2, color='gray')
