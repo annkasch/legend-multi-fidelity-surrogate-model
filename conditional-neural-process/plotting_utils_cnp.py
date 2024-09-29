@@ -34,8 +34,8 @@ def plot(prediction_y_training, target_y_training, loss_training, prediction_y_t
        
 
         ax[1].set_yscale('log')
-        ax[1].set_ylabel('#')
-        ax[1].set_xlabel('nC probability')
+        ax[1].set_ylabel("Count")
+        ax[1].set_xlabel(r'$y_{CNP}$')
         ax[1].set_title(f'Testing (loss {loss_testing})', fontsize=10)
         #ax[1].legend(loc='bottom left', bbox_to_anchor=(0, -1.5))
         #ax[1].text(0.35,-0.25, f'Test data {Counter([i[0] for i in target_y_testing])}', fontsize=8.5, transform=ax[1].transAxes)
@@ -49,8 +49,8 @@ def plot(prediction_y_training, target_y_training, loss_training, prediction_y_t
                 ax[0].hist(prediction_signal_training, range=[0.0, 1.0],bins=bins, color='coral', alpha=0.8, label='network (signal)')
         
         ax[0].set_yscale('log')
-        ax[0].set_ylabel('#')
-        ax[0].set_xlabel('nC probability')
+        ax[0].set_ylabel("Count")
+        ax[0].set_xlabel(r'$y_{CNP}$')
         ax[0].set_title(f'Training (loss {loss_training})', fontsize=10)
 
         fig.subplots_adjust(bottom=0.3, wspace=0.33)
@@ -84,7 +84,8 @@ def plot_config(prediction_y, target_y, loss, param=""):
     ax[0].set_title(f'Testing (loss {loss}) {param}{Counter([i[0] for i in target_y])}', fontsize=10)
     ax[0].legend(loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=2)
     ax[0].set_yscale("log")
-
+    ax[0].set_ylabel("Count")
+    ax[0].set_xlabel(r"$y_{CNP}$")
     ax[1].set_axis_off()
 
     return fig
@@ -130,6 +131,9 @@ def plot_result_summed(htsig, htbkg, hpsig, hpbkg):
     ax[0].set_title(f'Testing', fontsize=10)
     ax[0].legend(loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=2)
     ax[0].set_yscale("log")
+    ax[0].set_ylabel("Count")
+    ax[0].set_xlabel(r"$y_{CNP}$")
+
 
     ax[1].set_axis_off()
 
@@ -137,6 +141,7 @@ def plot_result_summed(htsig, htbkg, hpsig, hpbkg):
 
 def get_subplot_result_configwise(ax, prediction_y, target_y, loss, param=""):
     index_list = np.where(target_y == 1)[0]
+
     target_signal = np.array([target_y[i] for i in index_list])
     prediction_signal = np.array([prediction_y[i] for i in index_list])
     target_bkg = np.delete(target_y, index_list)
@@ -149,8 +154,8 @@ def get_subplot_result_configwise(ax, prediction_y, target_y, loss, param=""):
     
     ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=2)
     ax.set_yscale("log")
-    ax.set_ylabel("#")
-    ax.set_xlabel("nC probability")
+    ax.set_ylabel("Count")
+    ax.set_xlabel(r"$y_{CNP}$")
 
 
 
@@ -163,6 +168,7 @@ def plot_result_configwise(prediction_y, target_y, loss, x):
     get_subplot_result_configwise(ax[0],prediction_y, target_y, loss)
 
     plotting.get_subplot_moderator(ax[1],x)
-    ax[1].legend([f"r={x[0]}, d={x[1]}, n={x[2]}, theta={x[3]}, L={x[4]}"],loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=2)
+    tmp_str=f"r={x[0]}, d={x[1]}, n={x[2]}, " + r"$\varphi$=" + f"{x[3]}, L={x[4]}"
+    ax[1].legend([tmp_str],loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=2)
         
     return fig
