@@ -60,7 +60,7 @@ def draw_model(mf_model, xmin, xmax, labels, factor=1., version='v1', x_fixed=[1
 
         ax[indices[i]] = ax[indices[i]].twinx()
         ax[indices[i]].fill_between(x_tmp.flatten(), (hhf_mean_mf_model - hhf_std_mf_model).flatten(), 
-                        (hhf_mean_mf_model + hhf_std_mf_model).flatten(), color='coral', alpha=0.3)    
+                        (hhf_mean_mf_model + hhf_std_mf_model).flatten(), color='coral', alpha=0.4)    
         ax[indices[i]].plot(x_tmp, hhf_mean_mf_model, '--', color='orangered')
 
         ax[indices[i]].set_xlabel(labels[i], fontsize=10)
